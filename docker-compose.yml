@@ -1,0 +1,24 @@
+services:
+  proxy:
+    build:
+      context: ./server/proxy
+    image: browser-linux-proxy:local
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    environment:
+      PORT: "8080"
+      MAX_CONNS: "64"
+
+  # Optional: reverse-proxy with COOP/COEP so the app + WS proxy live on one origin.
+  # Point your browser at http://localhost:8088 when using this.
+  web:
+    image: caddy:2-alpine
+    depends_on:
+      - proxy
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./dist:/srv:ro
+    restart: unless-stopped
