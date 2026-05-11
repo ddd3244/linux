@@ -1,0 +1,8 @@
+{
+  "id": "linux-iso-tty",
+  "displayName": "Linux (v86 demo ISO, TTY)",
+  "kind": "disk",
+  "hdaUrl": "/images/linux.iso",
+  "hdaSize": 5666816,
+  "recommendedMemoryMiB": 128
+}

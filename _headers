@@ -1,0 +1,13 @@
+# Cloudflare Pages / Netlify: headers for cross-origin isolation (v86 needs
+# SharedArrayBuffer for best performance).
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Resource-Policy: cross-origin
+
+/v86/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/images/*
+  Cache-Control: public, max-age=31536000, immutable
+  Cross-Origin-Resource-Policy: cross-origin
