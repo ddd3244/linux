@@ -1,35 +1,48 @@
 /**
- * Manifest for the default shipped Linux image.
+ * Manifest for a shipped Linux image.
  *
- * The image is a flat disk image (not qcow2) because v86's async loader only
- * supports raw. We describe the file so the emulator knows its total size
- * (required for chunked range requests).
+ * Two flavours:
+ *   - kind: 'disk'  — a flat raw hda image. Big, full userland, persists
+ *     user data to the image's blocks (on top of v86's saved state).
+ *   - kind: 'kernel' — a bzImage + optional initrd pair. Tiny (~4 MB),
+ *     instant boot, but no persistent disk. Perfect for a public demo.
  *
- * Produce the image with `scripts/fetch-image.mjs` or build your own via
- * alpine-make-vm-image. Place it at /public/images/<name>.
+ * We keep a single union type so the rest of the app can treat them
+ * uniformly (the boot path picks the right v86 options).
  */
 
-export interface ImageManifest {
-  /** Human name for UI. */
+export interface DiskManifest {
+  kind: 'disk';
+  id: string;
   displayName: string;
-  /** URL that resolves to a flat raw disk image. */
+  /** URL to a flat raw disk image. */
   hdaUrl: string;
-  /** File size in bytes (exact). */
+  /** Exact file size in bytes (v86 needs this for chunked ranges). */
   hdaSize: number;
   /** Optional state snapshot URL for fast boot. */
   initialStateUrl?: string;
-  /** Recommended RAM in MiB for this image. */
   recommendedMemoryMiB: number;
-  /** Stable ID used as IndexedDB key for saved state. */
-  id: string;
 }
 
-export const DEFAULT_IMAGE: ImageManifest = {
-  id: 'alpine-3.19-x86',
-  displayName: 'Alpine Linux 3.19 (x86, TTY)',
-  hdaUrl: '/images/alpine.img',
-  // Actual bytes of /public/images/alpine.img, filled by fetch-image.mjs
-  // (the script writes `images.manifest.json` next to it).
-  hdaSize: 134_217_728,
+export interface KernelManifest {
+  kind: 'kernel';
+  id: string;
+  displayName: string;
+  bzimageUrl: string;
+  bzimageSize: number;
+  initrdUrl?: string;
+  initrdSize?: number;
+  cmdline: string;
+  recommendedMemoryMiB: number;
+}
+
+export type ImageManifest = DiskManifest | KernelManifest;
+
+export const DEFAULT_IMAGE: DiskManifest = {
+  kind: 'disk',
+  id: 'linux-iso-tty',
+  displayName: 'Linux (v86 demo ISO, TTY)',
+  hdaUrl: '/images/linux.iso',
+  hdaSize: 5_666_816,
   recommendedMemoryMiB: 128,
 };

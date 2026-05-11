@@ -1,4 +1,5 @@
 import type { V86Ctor } from './v86-types';
+import { asset } from '@/config';
 
 /**
  * Loads `libv86.js` from /public/v86/ at runtime.
@@ -20,7 +21,7 @@ import type { V86Ctor } from './v86-types';
 
 let loadingPromise: Promise<V86Ctor> | null = null;
 
-export function loadV86(scriptUrl = '/v86/libv86.js'): Promise<V86Ctor> {
+export function loadV86(scriptUrl = asset('/v86/libv86.js')): Promise<V86Ctor> {
   if (loadingPromise) return loadingPromise;
 
   if (typeof window === 'undefined') {

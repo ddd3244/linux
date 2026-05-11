@@ -5,7 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="dark light" />
     <title>Browser Linux</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <!--
+      GitHub Pages and similar static hosts do not let you set HTTP headers.
+      This service worker rewrites responses to include COOP/COEP so that
+      SharedArrayBuffer is available and v86 can use the fast path.
+      Harmless no-op when proper headers are already set (self-host / Vercel).
+    -->
+    <script src="./coi-serviceworker.js"></script>
   </head>
   <body>
     <div id="root"></div>

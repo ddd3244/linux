@@ -12,7 +12,16 @@ import path from 'node:path';
  * - The Linux disk image is a large (~30 MB) flat file in /public/images; excluded from
  *   the JS bundle and streamed by the emulator on demand.
  */
+/**
+ * `base` is used by Vite to prefix all asset URLs in the built index.html.
+ * On GitHub Pages the site lives under /<repo>/, so we set it from the env
+ * variable `VITE_BASE` that the GitHub Actions workflow injects. Default
+ * is `/` for self-hosted / Vercel / Netlify deploys.
+ */
+const base = process.env.VITE_BASE ?? '/';
+
 export default defineConfig({
+  base,
   plugins: [react()],
   resolve: {
     alias: {

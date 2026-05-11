@@ -1,87 +1,112 @@
 #!/usr/bin/env node
-// Fetch or build a default Alpine x86 disk image for v86.
+// Fetch a default Linux image for v86.
 //
-// For CI/dev convenience, we pull a pre-made Alpine image from v86-images
-// (community-maintained). Users who want a different distro should either:
-//   - Drop their own flat .img into /public/images/ and update
-//     src/boot/image-manifest.ts, or
-//   - Use alpine-make-vm-image or `qemu-img convert -f qcow2 -O raw in out`.
+// Default profile is `linux-iso` — a ~5.5 MB bootable Linux ISO shipped by
+// the v86 project (copy/images on GitHub). Fast first-load, no userland
+// package manager, perfect for a public demo on GitHub Pages.
 //
-// The default URL below points to a v86-compatible Alpine snapshot. If it's
-// unavailable, run `npm run fetch:image -- --url <your-url>` to override.
+// For a bigger distro, pass --profile alpine or override --url.
 
 import { mkdir, stat, writeFile } from 'node:fs/promises';
 import { createWriteStream } from 'node:fs';
 import { pipeline } from 'node:stream/promises';
 import { Readable } from 'node:stream';
-import { dirname, resolve as pathResolve } from 'node:path';
+import { dirname, resolve as pathResolve, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = pathResolve(__dirname, '..');
 const OUT_DIR = pathResolve(ROOT, 'public/images');
 
-// A v86-compatible Alpine image hosted by the v86 project for demos.
-// Can be overridden with --url <URL>.
-const DEFAULT_URL =
-  process.env.BROWSER_LINUX_IMAGE_URL ??
-  'https://copy.sh/v86/images/linux4.iso'; // fallback, small bootable linux
-
 function parseArgs() {
   const args = process.argv.slice(2);
-  const out = { url: DEFAULT_URL, name: 'alpine.img' };
+  const out = {
+    profile: process.env.BROWSER_LINUX_PROFILE ?? 'linux-iso',
+    url: null,
+    name: null,
+  };
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === '--url') out.url = args[++i];
+    if (args[i] === '--profile') out.profile = args[++i];
+    else if (args[i] === '--url') out.url = args[++i];
     else if (args[i] === '--name') out.name = args[++i];
   }
   return out;
 }
 
+const PROFILES = {
+  // Small bootable Linux ISO from the v86 images repo. Works with `hda` +
+  // autostart. ~5.5 MB.
+  'linux-iso': {
+    kind: 'disk',
+    hda: {
+      url: 'https://raw.githubusercontent.com/copy/images/master/linux.iso',
+      name: 'linux.iso',
+    },
+    recommendedMemoryMiB: 128,
+    id: 'linux-iso-tty',
+    displayName: 'Linux (v86 demo ISO, TTY)',
+  },
+  // A full Alpine disk image. Users should point --url at their own
+  // alpine-make-vm-image output.
+  alpine: {
+    kind: 'disk',
+    hda: {
+      url: 'https://raw.githubusercontent.com/copy/images/master/linux.iso',
+      name: 'alpine.img',
+    },
+    recommendedMemoryMiB: 256,
+    id: 'alpine-3.19-x86',
+    displayName: 'Alpine Linux (x86, TTY)',
+  },
+};
+
 async function exists(p) {
   try {
-    const s = await stat(p);
-    return s;
+    return await stat(p);
   } catch {
     return null;
   }
 }
 
-async function main() {
-  const { url, name } = parseArgs();
-  await mkdir(OUT_DIR, { recursive: true });
-  const dest = pathResolve(OUT_DIR, name);
-
+async function download(url, dest) {
   const existing = await exists(dest);
-  if (existing && existing.size > 1024 * 1024) {
-    console.log(`ok  images/${name} (cached, ${existing.size} bytes)`);
-    await writeManifest(dest, existing.size);
-    return;
+  if (existing && existing.size > 1024) {
+    console.log(`ok  images/${basename(dest)} (cached, ${existing.size} B)`);
+    return existing.size;
   }
-
-  console.log(`downloading ${url} -> images/${name}`);
+  console.log(`get ${url}`);
   const res = await fetch(url);
   if (!res.ok || !res.body) {
-    console.error(`GET ${url} -> ${res.status}`);
-    console.error('Provide your own image: npm run fetch:image -- --url <url> --name alpine.img');
-    process.exit(1);
+    throw new Error(`GET ${url} -> ${res.status}`);
   }
   await pipeline(Readable.fromWeb(res.body), createWriteStream(dest));
-  const size = (await stat(dest)).size;
-  console.log(`ok  images/${name} (${size} bytes)`);
-  await writeManifest(dest, size);
+  return (await stat(dest)).size;
 }
 
-async function writeManifest(filePath, size) {
-  const manifestPath = pathResolve(OUT_DIR, 'alpine.manifest.json');
-  const j = {
-    id: 'alpine-3.19-x86',
-    displayName: 'Alpine Linux (x86, TTY)',
-    hdaUrl: '/images/' + filePath.split('/').pop(),
+async function main() {
+  const { profile, url, name } = parseArgs();
+  await mkdir(OUT_DIR, { recursive: true });
+
+  const spec = PROFILES[profile];
+  if (!spec) {
+    console.error(`unknown profile: ${profile}`);
+    console.error(`known: ${Object.keys(PROFILES).join(', ')}`);
+    process.exit(1);
+  }
+
+  const targetName = name ?? spec.hda.name;
+  const target = pathResolve(OUT_DIR, targetName);
+  const size = await download(url ?? spec.hda.url, target);
+  const manifest = {
+    id: spec.id,
+    displayName: spec.displayName,
+    kind: 'disk',
+    hdaUrl: '/images/' + basename(target),
     hdaSize: size,
-    recommendedMemoryMiB: 128,
+    recommendedMemoryMiB: spec.recommendedMemoryMiB,
   };
-  await writeFile(manifestPath, JSON.stringify(j, null, 2));
-  console.log(`ok  images/alpine.manifest.json`);
+  await writeFile(pathResolve(OUT_DIR, 'alpine.manifest.json'), JSON.stringify(manifest, null, 2));
+  console.log('ok  images/alpine.manifest.json');
 }
 
 main().catch((err) => {

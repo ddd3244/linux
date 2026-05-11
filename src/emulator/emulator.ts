@@ -1,5 +1,7 @@
 import { loadV86 } from './v86-loader';
+import { asset } from '@/config';
 import type { V86DownloadProgress, V86Instance, V86Options } from './v86-types';
+import type { ImageManifest } from '@/boot/image-manifest';
 
 export type EmulatorStatus =
   | 'idle'
@@ -11,14 +13,10 @@ export type EmulatorStatus =
   | 'error';
 
 export interface EmulatorConfig {
-  /** Path to the hda image (flat .img). */
-  hdaUrl: string;
-  /** Size of the image in bytes. v86 needs this for async chunked loading. */
-  hdaSize: number;
+  /** Manifest describing what to boot (disk image OR kernel+initrd). */
+  image: ImageManifest;
   /** RAM in MiB (128..512 recommended). */
   memoryMiB: number;
-  /** Optional initial state snapshot (fast boot). */
-  initialStateUrl?: string;
   /** WebSocket relay for networking (wss://...). */
   networkRelayUrl?: string;
   /** Mount <div> that will receive the VGA canvas (even if we mostly use serial). */
@@ -72,17 +70,12 @@ export class Emulator {
     const V86 = await loadV86();
 
     const opts: V86Options = {
-      wasm_path: '/v86/v86.wasm',
+      wasm_path: asset('/v86/v86.wasm'),
       memory_size: this.config.memoryMiB * 1024 * 1024,
       vga_memory_size: 8 * 1024 * 1024,
       screen_container: this.config.screenContainer,
-      bios: { url: '/v86/bios/seabios.bin' },
-      vga_bios: { url: '/v86/bios/vgabios.bin' },
-      hda: {
-        url: this.config.hdaUrl,
-        async: true,
-        size: this.config.hdaSize,
-      },
+      bios: { url: asset('/v86/bios/seabios.bin') },
+      vga_bios: { url: asset('/v86/bios/vgabios.bin') },
       autostart: true,
       disable_speaker: false,
       acpi: true,
@@ -90,9 +83,22 @@ export class Emulator {
       uart2: false,
       uart3: false,
     };
-    if (this.config.initialStateUrl) {
-      opts.initial_state = { url: this.config.initialStateUrl };
+
+    const img = this.config.image;
+    if (img.kind === 'disk') {
+      opts.hda = { url: img.hdaUrl, async: true, size: img.hdaSize };
+      if (img.initialStateUrl) {
+        opts.initial_state = { url: img.initialStateUrl };
+      }
+    } else {
+      // Kernel boot path: bzImage + (optional) initrd + cmdline.
+      opts.bzimage = { url: img.bzimageUrl, async: true, size: img.bzimageSize };
+      if (img.initrdUrl && img.initrdSize) {
+        opts.initrd = { url: img.initrdUrl, async: true, size: img.initrdSize };
+      }
+      opts.cmdline = img.cmdline;
     }
+
     if (this.config.networkRelayUrl) {
       opts.network_relay_url = this.config.networkRelayUrl;
     }

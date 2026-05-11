@@ -16,7 +16,10 @@ const SETTINGS_KEY = 'browser-linux.settings.v1';
 
 const defaultSettings: SettingsValue = {
   memoryMiB: 128,
-  relaySource: 'self' as RelaySource,
+  // On a public static-only host (GitHub Pages), default to the public
+  // community v86 relay so users see *some* network. Self-hosters can flip
+  // to `self` in settings.
+  relaySource: 'public' as RelaySource,
   relayUserUrl: '',
   autoSaveOnExit: true,
 };
@@ -107,10 +110,8 @@ export function App() {
     const savedState = await store.loadState().catch(() => null);
 
     const emulator = new Emulator({
-      hdaUrl: manifest.hdaUrl,
-      hdaSize: manifest.hdaSize,
+      image: manifest,
       memoryMiB: settings.memoryMiB,
-      ...(manifest.initialStateUrl ? { initialStateUrl: manifest.initialStateUrl } : {}),
       ...(relay.url ? { networkRelayUrl: relay.url } : {}),
       screenContainer: screenRef.current!,
       onStatus: (s, detail) => {
