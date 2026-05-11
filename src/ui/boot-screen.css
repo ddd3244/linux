@@ -1,0 +1,66 @@
+.bl-boot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+  color: #d6d8dc;
+  font-family: monospace;
+  min-height: 100%;
+  text-align: center;
+}
+.bl-boot__logo pre {
+  color: #7fff7f;
+  font-size: 11px;
+  line-height: 1.1;
+  margin: 0;
+  white-space: pre;
+}
+.bl-boot__status {
+  font-size: 14px;
+  opacity: 0.9;
+}
+.bl-boot__bar {
+  width: min(460px, 90%);
+  height: 18px;
+  background: #1a1d24;
+  border: 1px solid #2c313a;
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+.bl-boot__bar-fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #3b8f3b, #7fff7f);
+  transition: width 0.15s linear;
+}
+.bl-boot__bar-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #fff;
+  text-shadow: 0 1px 0 #000a;
+}
+.bl-boot__warnings {
+  color: #e4c070;
+  font-size: 12px;
+  text-align: left;
+  max-width: 560px;
+  padding-left: 0;
+  list-style: none;
+}
+.bl-boot__error {
+  color: #ff6a6a;
+  font-size: 13px;
+  max-width: 560px;
+}
+.bl-boot__hint {
+  color: #6a7080;
+  font-size: 12px;
+  margin-top: 8px;
+}

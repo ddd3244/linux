@@ -1,0 +1,86 @@
+.bl-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.bl-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+.bl-modal__panel {
+  position: relative;
+  width: min(540px, 92vw);
+  max-height: 86vh;
+  overflow: auto;
+  background: #12151c;
+  color: #e6e6e6;
+  border: 1px solid #2a2f3a;
+  border-radius: 6px;
+  padding: 16px 18px;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.bl-modal__panel header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.bl-modal__panel h2 {
+  margin: 0;
+  font-size: 15px;
+  letter-spacing: 0.3px;
+}
+.bl-modal__panel footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #242833;
+}
+.bl-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.bl-field--checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.bl-field small {
+  color: #6a7080;
+  font-size: 11px;
+  line-height: 1.35;
+}
+.bl-field input[type='number'],
+.bl-field input[type='text'] {
+  background: #0b0d12;
+  border: 1px solid #2a2f3a;
+  border-radius: 3px;
+  color: #e6e6e6;
+  padding: 5px 8px;
+  font-family: monospace;
+}
+.bl-radio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+}
+fieldset.bl-field {
+  border: 1px solid #242833;
+  border-radius: 4px;
+  padding: 8px 10px;
+}
+fieldset.bl-field legend {
+  color: #a0a4ad;
+  font-size: 12px;
+  padding: 0 4px;
+}

@@ -1,0 +1,42 @@
+{
+  "name": "browser-linux",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A real Linux distribution (Alpine) running fully in the browser via v86/WebAssembly",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host",
+    "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
+    "fetch:v86": "node scripts/fetch-v86.mjs",
+    "fetch:image": "node scripts/fetch-image.mjs",
+    "prepare:all": "npm run fetch:v86 && npm run fetch:image",
+    "proxy": "node server/proxy/index.mjs"
+  },
+  "dependencies": {
+    "@xterm/addon-fit": "0.10.0",
+    "@xterm/addon-web-links": "0.11.0",
+    "@xterm/xterm": "5.5.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.18",
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "@typescript-eslint/eslint-plugin": "8.8.0",
+    "@typescript-eslint/parser": "8.8.0",
+    "@vitejs/plugin-react": "4.3.2",
+    "eslint": "8.57.1",
+    "eslint-plugin-react-hooks": "5.0.0",
+    "eslint-plugin-react-refresh": "0.4.12",
+    "prettier": "3.3.3",
+    "typescript": "5.6.2",
+    "vite": "5.4.8"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

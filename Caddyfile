@@ -1,0 +1,33 @@
+# Local reverse proxy: serve the built app and bridge /net/ to the WS proxy.
+#
+#   npm run build    # -> ./dist
+#   docker compose up
+#
+# Then open http://localhost:8088/
+
+:8088 {
+  encode zstd gzip
+
+  header {
+    Cross-Origin-Opener-Policy "same-origin"
+    Cross-Origin-Embedder-Policy "require-corp"
+    Cross-Origin-Resource-Policy "cross-origin"
+    # Cache hashed assets hard, HTML short
+    Cache-Control "public, max-age=3600"
+  }
+
+  @images path /images/*
+  header @images Cache-Control "public, max-age=31536000, immutable"
+
+  @v86 path /v86/*
+  header @v86 Cache-Control "public, max-age=31536000, immutable"
+
+  route /net/* {
+    uri strip_prefix /net
+    reverse_proxy proxy:8080
+  }
+
+  root * /srv
+  try_files {path} /index.html
+  file_server
+}

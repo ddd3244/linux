@@ -1,0 +1,51 @@
+.bl-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #12151c;
+  border-bottom: 1px solid #242833;
+  color: #dadde2;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  user-select: none;
+}
+.bl-toolbar__brand {
+  font-weight: 600;
+  color: #7fff7f;
+  letter-spacing: 0.5px;
+}
+.bl-toolbar__sep {
+  width: 1px;
+  height: 18px;
+  background: #2a2f3a;
+  margin: 0 4px;
+}
+.bl-toolbar__spacer {
+  flex: 1;
+}
+.bl-btn {
+  appearance: none;
+  background: #1c2029;
+  color: #e6e6e6;
+  border: 1px solid #2a2f3a;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.bl-btn:hover:not(:disabled) {
+  background: #262b35;
+  border-color: #3a4050;
+}
+.bl-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.bl-btn--primary {
+  background: #2d5f2d;
+  border-color: #3c7a3c;
+}
+.bl-btn--primary:hover:not(:disabled) {
+  background: #357135;
+}
